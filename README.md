@@ -33,7 +33,6 @@ Old databases will still work with the Enhanced version. The addon will migrate 
 > [!IMPORTANT]
 > Since the Enhanced version uses mob IDs, old databases will import the mob names as there's no way to resolve the name to ID conversion without encountering the mob in-game. Mobs will be listed as "?" in the Mob List until encountered normally at which point the name to ID conversion will take place. If you use [**pfQuest**](https://github.com/brues-code/pfQuest), then name to ID conversions will happen immediately upon database migration or if the MI2 has detected mob names instead of IDs in its SavedVariable, as the addon will scan pfQuest's locale appropriate `units.lua`.
 >
-To fully finalize old database migration, [**pfQuest**](https://github.com/brues-code/pfQuest) is recommended. Since old databases use names, the name to ID conversion can only happen unassisted by encountering mobs in the game. If pfQuest is detected, the addon will scan its locale appropriate `units.lua` and convert the names to IDs. Just to be clear though, this isn't necessary, it's just if you want the database to be fully converted immediately.
 
 # **MobInfo2 Browser Enhanced** 
 
