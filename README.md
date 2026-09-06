@@ -25,6 +25,7 @@ Skeeve & Dizzarian's MobInfo2 for World of Warcraft 1.12.1 with the following en
  - added toggleable minimap button
  - added option to limit the number of mob tooltip lines to 30; ClassicAPI uncaps the number of lines a tooltip can display, so this option can be useful to prevent the mob's tooltip from taking up the way too much space
  - multiple other miscellaneous/under the hood/too minor to list changes
+ - [**pfUI**](https://github.com/brues-code/pfUI) support
 
 The addon comes with a database that can be imported by going to the Database tab of the options menu.
 
