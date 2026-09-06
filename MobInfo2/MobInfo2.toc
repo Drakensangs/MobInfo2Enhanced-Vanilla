@@ -1,0 +1,16 @@
+## Interface: 11200
+## Title: MobInfo2 Enhanced
+## Version: 3.3
+## Authors: Original addon: Skeeve & Dizzarian; Enhanced version: Drakensangs
+## Notes: Adds information about the hovered mob to the tooltip and shows health/mana information in the target frame.
+## Notes-deDE: Fügt dem Tooltip Informationen über den anvisierten Gegner hinzu und zeigt Lebens- und Manainformationen im Zielrahmen an.
+## Notes-esES: Añade información sobre el objetivo al tooltip y muestra información de vida y maná en el marco del objetivo.
+## Notes-frFR: Ajoute des informations sur la cible survolée dans l'infobulle et affiche les informations de vie et de mana dans le cadre de cible.
+## Notes-koKR: 마우스를 올린 몬스터에 대한 정보를 툴팁에 추가하고 대상 프레임에 체력 및 마나 정보를 표시합니다.
+## Notes-zhCN: 在鼠标悬停的目标提示框中添加相关信息，并在目标框架中显示生命值和法力值信息。
+## Notes-zhTW: 在滑鼠懸停的目標提示框中新增相關資訊，並在目標框架中顯示生命值與法力值資訊。
+## SavedVariables: MobInfoConfig, MobInfoDB, MobHealthPlayerDB, MI2_CharTable
+## Dependencies:
+## OptionalDeps: myAddOns
+MobInfo2.xml
+MI2_Config.xml
