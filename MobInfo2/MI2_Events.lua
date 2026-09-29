@@ -132,6 +132,8 @@ local function MI2_VariablesLoaded()
 			end
 		end
 	end)
+
+	MI2_MobHealth_SetPos()
 end
 
 -----------------------------------------------------------------------------
@@ -650,7 +652,7 @@ function MI2_GameTooltip_OnShow( )
 				MI2_BuildMobInfoTooltip( mouseoverID or UnitName("mouseover"), mouseoverLevel, nil )
 				GameTooltip:Show()
 			end
-		elseif firstline and UnitClass("mouseover") == nil then
+		elseif firstline and UnitClass("mouseover") == nil and not GameTooltip:HasSpell() then
 			-- add item loot info to item tooltip
 			-- use GetItem() to retrieve base itemID, then resolve to base name
 			-- so random-suffix items (e.g. "of the Tiger") match the XRef table

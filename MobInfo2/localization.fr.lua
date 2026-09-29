@@ -121,7 +121,7 @@ MI2_OPTIONS["MI2_OptShowClass"] =
 { text = "Classe de créature"; help = "Afficher les infos de classe de créature."; }
 
 MI2_OPTIONS["MI2_OptShowHealth"] =
-{ text = "Vie"; help = "Afficher les infos de vie de créature (actuelle/max).\nL'enregistrement des données de vie doit être ACTIVÉ pour que cela fonctionne."; }
+{ text = "Vie"; help = "Afficher les infos de vie de créature (actuelle/max).\nL'enregistrement des données de vie doit être ACTIVÉ pour que cela fonctionne\nsur les serveurs qui n'affichent pas les vraies valeurs de vie d'unité."; }
 
 MI2_OPTIONS["MI2_OptShowMana"] =
 { text = "Mana"; help = "Afficher les infos de mana/rage/énergie de créature (actuelle/max)."; }
@@ -217,7 +217,7 @@ info = "Afficher uniquement les objets de butin dans l'infobulle qui contiennent
 
 MI2_OPTIONS["MI2_OptSaveMobHp"] =
 { text = "Enregistrer les données de vie"; help = "Enregistrer les données de vie de créature pour l'affichage dans l'infobulle.";
-info = "Quand activé, MobInfo enregistre la vie des créatures rencontrées.\nDésactiver arrête l'enregistrement ou la mise à jour des données de vie.\nL'option d'infobulle de vie nécessite que ceci soit activé." }
+info = "Quand activé, MobInfo enregistre la vie des créatures rencontrées.\nDésactiver arrête l'enregistrement ou la mise à jour des données de vie.\nL'option d'infobulle de vie nécessite que ceci soit activé sur les serveurs\nqui n'affichent pas les vraies valeurs de vie d'unité." }
 
 MI2_OPTIONS["MI2_OptRecordPlayerHp"] =
 { text = "Enregistrer les données de vie du joueur"; help = "Enregistrer les données de vie du joueur pendant une session.";

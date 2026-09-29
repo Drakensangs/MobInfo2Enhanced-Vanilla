@@ -1,6 +1,6 @@
 ## Interface: 11200
 ## Title: MobInfo2 Enhanced
-## Version: 3.3
+## Version: 3.31
 ## Authors: Original addon: Skeeve & Dizzarian; Enhanced version: Drakensangs
 ## Notes: Adds information about the hovered mob to the tooltip and shows health/mana information in the target frame.
 ## Notes-deDE: Fügt dem Tooltip Informationen über den anvisierten Gegner hinzu und zeigt Lebens- und Manainformationen im Zielrahmen an.

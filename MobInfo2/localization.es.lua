@@ -121,7 +121,7 @@ MI2_OPTIONS["MI2_OptShowClass"] =
 { text = "Clase de criatura"; help = "Mostrar información de clase de criatura."; }
 
 MI2_OPTIONS["MI2_OptShowHealth"] =
-{ text = "Vida"; help = "Mostrar información de vida de criatura (actual/máx).\nEl registro de datos de vida debe estar ACTIVADO para que funcione."; }
+{ text = "Vida"; help = "Mostrar información de vida de criatura (actual/máx).\nEl registro de datos de vida debe estar ACTIVADO para que funcione\nen servidores que no muestran los valores reales de vida de unidad."; }
 
 MI2_OPTIONS["MI2_OptShowMana"] =
 { text = "Maná"; help = "Mostrar información de maná/rabia/energía de criatura (actual/máx)."; }
@@ -217,7 +217,7 @@ info = "Mostrar solo los objetos de botín en la información emergente que cont
 
 MI2_OPTIONS["MI2_OptSaveMobHp"] =
 { text = "Registrar datos de vida de criatura"; help = "Registrar datos de vida de criatura para mostrar en la información emergente.";
-info = "Cuando está activado, MobInfo registra la vida de las criaturas encontradas.\nDesactivar detiene el registro o actualización de datos de vida.\nLa opción de información emergente de vida requiere que esto esté activado." }
+info = "Cuando está activado, MobInfo registra la vida de las criaturas encontradas.\nDesactivar detiene el registro o actualización de datos de vida.\nLa opción de información emergente de vida requiere que esto esté activado\nen servidores que no muestran los valores reales de vida de unidad." }
 
 MI2_OPTIONS["MI2_OptRecordPlayerHp"] =
 { text = "Registrar datos de vida del jugador"; help = "Registrar datos de vida del jugador durante una sesión.";

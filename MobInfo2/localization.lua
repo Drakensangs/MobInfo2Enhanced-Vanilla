@@ -135,7 +135,7 @@ MI2_OPTIONS["MI2_OptShowClass"] =
 { text = "Mob Class"; help = "Show Mob class info."; }
 
 MI2_OPTIONS["MI2_OptShowHealth"] = 
-{ text = "Health"; help = "Show Mob health info (current/max).\nRecording Mob health data must be ENABLED for this to work."; }
+{ text = "Health"; help = "Show Mob health info (current/max).\nRecording Mob health data must be ENABLED for this to work\non servers that do not display real unit health values."; }
 
 MI2_OPTIONS["MI2_OptShowMana"] = 
 { text = "Mana"; help = "Show Mob mana/rage/energy info (current/max)."; }
@@ -231,7 +231,7 @@ info = "Display only those loot items in the Mob tooltip that include\nthe filte
 
 MI2_OPTIONS["MI2_OptSaveMobHp"] =
 { text = "Record Mob Health Data"; help = "Record Mob health data for display in the tooltip.";
-info = "When enabled, MobInfo records the health of Mobs you encounter.\nDisabling this stops health data from being recorded or updated.\nThe Health tooltip option requires this to be enabled." }
+info = "When enabled, MobInfo records the health of Mobs you encounter.\nDisabling this stops health data from being recorded or updated.\nThe Health tooltip option requires this to be enabled on servers that\ndo not display real unit health values." }
 
 MI2_OPTIONS["MI2_OptRecordPlayerHp"] =
 { text = "Record Player Health Data"; help = "Record player health data during a session. Scrubbed on logout\nunless save player health data permanently is also enabled.";

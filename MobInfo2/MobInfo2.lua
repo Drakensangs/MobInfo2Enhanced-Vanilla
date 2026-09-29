@@ -268,10 +268,19 @@ function MI2_GetUnitBasedMobData( mobIndex, mobData, unitId, mobLevel )
 	-- obtain unit specific values if unitId is given
 	if unitId then
 		mobData.class = UnitClass(unitId)
-		if UnitHealthMax(unitId) == 100 then
-			mobData.healthCur = floor(mobPPP * UnitHealth(unitId) + 0.5)
+		local unitHpMax = UnitHealthMax(unitId)
+		if unitHpMax == 100 then
+			-- Server returns health as a percentage (vanilla behaviour).
+			if MobInfoConfig.SaveMobHp == 0 then
+				mobData.healthCur = UnitHealth(unitId)
+				mobData.healthMax = 100
+			else
+				mobData.healthCur = floor(mobPPP * UnitHealth(unitId) + 0.5)
+			end
 		else
+			-- Server exposes real health values directly.
 			mobData.healthCur = UnitHealth(unitId)
+			mobData.healthMax = unitHpMax
 		end
 		mobData.manaCur = UnitMana( unitId )
 		mobData.manaMax = UnitManaMax( unitId )

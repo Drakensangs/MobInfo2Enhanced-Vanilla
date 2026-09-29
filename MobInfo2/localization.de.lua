@@ -121,7 +121,7 @@ MI2_OPTIONS["MI2_OptShowClass"] =
 { text = "Gegnerklasse"; help = "Gegnerklasseninformationen anzeigen."; }
 
 MI2_OPTIONS["MI2_OptShowHealth"] =
-{ text = "Leben"; help = "Gegnerlebensinfos anzeigen (aktuell/max).\nDas Aufzeichnen von Gegnerlebensdaten muss AKTIVIERT sein, damit dies funktioniert."; }
+{ text = "Leben"; help = "Gegnerlebensinfos anzeigen (aktuell/max).\nDas Aufzeichnen von Gegnerlebensdaten muss AKTIVIERT sein, damit dies funktioniert\nauf Servern, die keine echten Einheitenlebenspunkte anzeigen."; }
 
 MI2_OPTIONS["MI2_OptShowMana"] =
 { text = "Mana"; help = "Gegner-Mana/Wut/Energie-Infos anzeigen (aktuell/max)."; }
@@ -217,7 +217,7 @@ info = "Nur die Beutegegenstände im Gegner-Tooltip anzeigen, die den\nFiltertex
 
 MI2_OPTIONS["MI2_OptSaveMobHp"] =
 { text = "Gegner-Lebensdaten aufzeichnen"; help = "Gegner-Lebensdaten für die Anzeige im Tooltip aufzeichnen.";
-info = "Wenn aktiviert, zeichnet MobInfo die Lebenspunkte der angetroffenen Gegner auf.\nDeaktivieren verhindert, dass Lebensdaten aufgezeichnet oder aktualisiert werden.\nDie Lebens-Tooltip-Option erfordert, dass dies aktiviert ist." }
+info = "Wenn aktiviert, zeichnet MobInfo die Lebenspunkte der angetroffenen Gegner auf.\nDeaktivieren verhindert, dass Lebensdaten aufgezeichnet oder aktualisiert werden.\nDie Lebens-Tooltip-Option erfordert, dass dies auf Servern aktiviert ist,\ndie keine echten Einheitenlebenspunkte anzeigen." }
 
 MI2_OPTIONS["MI2_OptRecordPlayerHp"] =
 { text = "Spieler-Lebensdaten aufzeichnen"; help = "Spieler-Lebensdaten während einer Sitzung aufzeichnen. Werden beim Ausloggen\ngelöscht, es sei denn, das dauerhafte Speichern ist ebenfalls aktiviert.";

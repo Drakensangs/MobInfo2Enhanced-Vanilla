@@ -121,7 +121,7 @@ MI2_OPTIONS["MI2_OptShowClass"] =
 { text = "怪物职业"; help = "显示怪物职业信息。"; }
 
 MI2_OPTIONS["MI2_OptShowHealth"] =
-{ text = "生命"; help = "显示怪物生命信息（当前/最大）。\n必须启用记录怪物生命数据才能使用此功能。"; }
+{ text = "生命"; help = "显示怪物生命信息（当前/最大）。\n在不显示真实单位生命值的服务器上，必须启用\n记录怪物生命数据才能使用此功能。"; }
 
 MI2_OPTIONS["MI2_OptShowMana"] =
 { text = "法力"; help = "显示怪物法力/怒气/能量信息（当前/最大）。"; }
@@ -217,7 +217,7 @@ info = "只显示提示框中包含过滤文字的战利品物品。\n例如输�
 
 MI2_OPTIONS["MI2_OptSaveMobHp"] =
 { text = "记录怪物生命数据"; help = "记录怪物生命数据以在提示框中显示。";
-info = "启用后，MobInfo 记录遇到的怪物的生命值。\n禁用将停止记录或更新生命数据。\n生命提示框选项需要启用此功能。" }
+info = "启用后，MobInfo 记录遇到的怪物的生命值。\n禁用将停止记录或更新生命数据。\n在不显示真实单位生命值的服务器上，\n生命提示框选项需要启用此功能。" }
 
 MI2_OPTIONS["MI2_OptRecordPlayerHp"] =
 { text = "记录玩家生命数据"; help = "在会话期间记录玩家生命数据。";
