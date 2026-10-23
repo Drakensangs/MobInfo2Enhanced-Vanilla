@@ -2238,17 +2238,19 @@ local function MI2_AddResistToTooltip( resistData, compact )
 			local hits = resistData[shortcut.."Hits"] or 1
 			local color = MI2_SpellSchoolColors[shortcut] or mifontWhite
 			local schoolName = MI2_SpellSchools[shortcut]
-			local schoolAbbrev = string.sub(schoolName, 1, 1)
-			
-			if value < 0 then
-				if hits < 1 then
-					table.insert(immuneParts, color..schoolAbbrev)
-				else
-					table.insert(immuneParts, color..schoolAbbrev.." (partial)")
+			if schoolName then
+				local schoolAbbrev = string.sub(schoolName, 1, 1)
+				
+				if value < 0 then
+					if hits < 1 then
+						table.insert(immuneParts, color..schoolAbbrev)
+					else
+						table.insert(immuneParts, color..schoolAbbrev.." (partial)")
+					end
+				elseif value > 0 then
+					local resistPercent = ceil((value/hits)*100)
+					table.insert(resistParts, color..schoolAbbrev..": "..resistPercent.."%")
 				end
-			elseif value > 0 then
-				local resistPercent = ceil((value/hits)*100)
-				table.insert(resistParts, color..schoolAbbrev..": "..resistPercent.."%")
 			end
 		end
 	end
@@ -2832,14 +2834,16 @@ function MI2_UpdateMobInfoState()
 		if MobInfoConfig.DisableMobInfo == 0 then
 			if frame.Enable then
 				frame:Enable()
-				getglobal(frame:GetName().."Text"):SetTextColor( 1.0, 0.8, 0.0 )
+				local textFrame = frame:GetName() and getglobal(frame:GetName().."Text")
+				if textFrame then textFrame:SetTextColor( 1.0, 0.8, 0.0 ) end
 			else
 				frame:Show()
 			end
 		else
 			if frame.Disable then
 				frame:Disable()
-				getglobal(frame:GetName().."Text"):SetTextColor( 0.5, 0.5, 0.5 )
+				local textFrame = frame:GetName() and getglobal(frame:GetName().."Text")
+				if textFrame then textFrame:SetTextColor( 0.5, 0.5, 0.5 ) end
 			else
 				frame:Hide()
 			end
