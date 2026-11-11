@@ -52,6 +52,7 @@ MI_TXT_SHOWING			= "List Shows: "
 MI_TXT_DROPPED_BY		= "Dropped By:"
 MI_TXT_DROPPED_BY_MANY	= "Dropped By %d Mobs:"
 MI_TXT_LOCATION			= "Location: "
+MI_TXT_MORE_ITEMS		= "... %d more items"
 MI_TXT_IMMUNE			= "Immune"
 MI_TXT_RESIST			= "Resist"
 MI_TXT_DEL_SEARCH_CONFIRM = "Do you really want to DELETE the %d Mobs in the search result list from the MobInfo database ?"
@@ -223,7 +224,7 @@ info = "Blank lines are meant to improve readability\nby creating sections in th
 
 MI2_OPTIONS["MI2_OptLimitTooltipLines"] =
 { text = "Limit Tooltip to 30 Lines"; help = "Limit the Mob tooltip to a maximum of 30 lines.";
-info = "Prevents the tooltip from growing excessively large on mobs\nwith many item drops. Item lines beyond 30 are not shown." }
+info = "Prevents the tooltip from growing excessively large on mobs\nwith many item drops. Item lines beyond 30 are not shown.\nEven without this option the tooltip never grows taller\nthan the screen: extra item lines are summarised instead." }
 
 MI2_OPTIONS["MI2_OptItemFilter"] = 
 { text = "Loot Item Filter"; help = "Set filtering expression for loot item display in tooltips.";

@@ -2026,6 +2026,116 @@ function MI2_GetLootItemString( itemID )
 end
 
 -----------------------------------------------------------------------------
+-- Tooltip height limiting
+--
+-- The loot item list is the only part of the Mob tooltip that can grow
+-- without bound. Item lines are therefore first collected in a pending
+-- list. Before they get added, the number of lines that still fit on the
+-- screen is computed from the real height of the lines already in the
+-- tooltip, the tooltip font, and the tooltip/UI scale. Items that do not
+-- fit are summarised in one final "... N more items" line, so the tooltip
+-- never becomes taller than the screen.
+-----------------------------------------------------------------------------
+local MI2_TOOLTIP_LINE_SPACING  = 2   -- vertical gap between tooltip lines
+local MI2_TOOLTIP_PADDING       = 20  -- tooltip border padding (10 top + 10 bottom)
+local MI2_TOOLTIP_SCREEN_MARGIN = 24  -- free space kept between tooltip and screen edges
+local MI2_PendingItemLines = {}
+
+-- height of one existing tooltip line (font string), 0 if unknown
+local function MI2_GetFontStringHeight( fontString )
+	if not fontString then return 0 end
+	local h = 0
+	local text = fontString:GetText()
+	if fontString.GetStringHeight and text and text ~= "" then
+		h = fontString:GetStringHeight() or 0
+	end
+	if h <= 0 then
+		h = fontString:GetHeight() or 0
+	end
+	return h
+end
+
+-- height of one new normal tooltip line (same font as all non-title lines)
+local function MI2_GetTooltipLineHeight()
+	local fontString = getglobal("GameTooltipTextLeft2")
+	local h
+	if fontString then
+		if fontString.GetLineHeight then
+			h = fontString:GetLineHeight()
+		end
+		if not h or h <= 0 then
+			local _, fontHeight = fontString:GetFont()
+			h = fontHeight
+		end
+	end
+	if not h or h <= 0 then h = 12 end
+	return h
+end
+
+-- number of additional lines that can be added to the GameTooltip without
+-- making it taller than the screen, nil if it can not be determined
+local function MI2_GetFreeTooltipLines()
+	local tooltipScale = GameTooltip:GetEffectiveScale()
+	local uiScale = UIParent:GetEffectiveScale()
+	local screenHeight = GetScreenHeight and GetScreenHeight() or UIParent:GetHeight()
+	if not tooltipScale or tooltipScale <= 0 or not uiScale or not screenHeight or screenHeight <= 0 then
+		return nil
+	end
+	-- convert screen height into the tooltip's own coordinate units
+	screenHeight = screenHeight * uiScale / tooltipScale
+
+	local usedHeight = MI2_TOOLTIP_PADDING
+	local numLines = GameTooltip:NumLines()
+	for i = 1, numLines do
+		usedHeight = usedHeight + MI2_GetFontStringHeight( getglobal("GameTooltipTextLeft"..i) )
+		if i > 1 then usedHeight = usedHeight + MI2_TOOLTIP_LINE_SPACING end
+	end
+
+	local lineHeight = MI2_GetTooltipLineHeight() + MI2_TOOLTIP_LINE_SPACING
+	local freeHeight = screenHeight - MI2_TOOLTIP_SCREEN_MARGIN - usedHeight
+	if freeHeight <= 0 then return 0 end
+	return floor( freeHeight / lineHeight )
+end
+
+-----------------------------------------------------------------------------
+-- MI2_FlushPendingItemLines()
+--
+-- Add the collected item lines to the tooltip. The amount of lines is
+-- limited to what fits on the screen and (if enabled) to the 30 lines
+-- tooltip limit. Hidden items are summarised in a final line.
+-----------------------------------------------------------------------------
+local function MI2_FlushPendingItemLines()
+	local total = table.getn( MI2_PendingItemLines )
+	if total == 0 then return end
+
+	local room = MI2_GetFreeTooltipLines()
+	if MobInfoConfig.LimitTooltipLines == 1 then
+		local roomTo30 = 30 - GameTooltip:NumLines()
+		if roomTo30 < 0 then roomTo30 = 0 end
+		if not room or room > roomTo30 then room = roomTo30 end
+	end
+	if not room or room >= total then
+		room = total
+	end
+
+	local shown = room
+	if room < total and room > 0 then
+		shown = room - 1  -- reserve one line for the "more items" summary
+	end
+	for i = 1, shown do
+		GameTooltip:AddLine( MI2_PendingItemLines[i] )
+	end
+	if shown < total and room > 0 then
+		GameTooltip:AddLine( mifontGray..string.format( MI_TXT_MORE_ITEMS or "... %d more items", total - shown ) )
+	end
+
+	-- make sure the (now limited) tooltip gets moved fully onto the screen
+	if GameTooltip.SetClampedToScreen and not (GameTooltip.IsClampedToScreen and GameTooltip:IsClampedToScreen()) then
+		GameTooltip:SetClampedToScreen( true )
+	end
+end
+
+-----------------------------------------------------------------------------
 -- MI2_AddOneItemToTooltip()
 --
 -- Add one loot item description line to the tooltip. Item description
@@ -2060,8 +2170,8 @@ local function MI2_AddOneItemToTooltip( mobData, itemID, amount, useFilter, pref
 		itemText = itemText.." ("..ceil(amount/totalAmount*100).."%)"  
 	end
 	
-	if MobInfoConfig.LimitTooltipLines == 1 and GameTooltip:NumLines() >= 30 then return end
-	GameTooltip:AddLine( itemColor..itemText )
+	-- lines are collected first and added by MI2_FlushPendingItemLines()
+	table.insert( MI2_PendingItemLines, itemColor..itemText )
 end
 
 -----------------------------------------------------------------------------
@@ -2085,6 +2195,7 @@ local MI2_QualShowConfig = {
 }
 
 local function MI2_AddItemsToTooltip( mobData )
+	MI2_PendingItemLines = {}
 	local normalList = {}
 	local collapsedList = {}
 	local skinList = {}
@@ -2200,6 +2311,9 @@ local function MI2_AddItemsToTooltip( mobData )
 			MI2_AddOneItemToTooltip( mobData, entry.id, entry.amount, false, prefix )
 		end
 	end
+
+	-- add the collected item lines, limited to what fits on the screen
+	MI2_FlushPendingItemLines()
 end
 
 -----------------------------------------------------------------------------
