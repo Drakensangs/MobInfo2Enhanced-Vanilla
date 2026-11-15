@@ -1,6 +1,6 @@
 ## Interface: 11200
 ## Title: MobInfo2 Enhanced
-## Version: 3.33
+## Version: 3.34
 ## Authors: Original addon: Skeeve & Dizzarian; Enhanced version: Drakensangs
 ## Notes: Adds information about the hovered mob to the tooltip and shows health/mana information in the target frame.
 ## Notes-deDE: Fügt dem Tooltip Informationen über den anvisierten Gegner hinzu und zeigt Lebens- und Manainformationen im Zielrahmen an.
@@ -12,5 +12,12 @@
 ## SavedVariables: MobInfoConfig, MobInfoDB, MobHealthPlayerDB, MI2_CharTable
 ## Dependencies:
 ## OptionalDeps: myAddOns
+localization.lua
+localization.de.lua    [AllowLoadTextLocale deDE]
+localization.fr.lua    [AllowLoadTextLocale frFR]
+localization.es.lua    [AllowLoadTextLocale esES]
+localization.tw.lua    [AllowLoadTextLocale zhTW]
+localization.cn.lua    [AllowLoadTextLocale zhCN]
+localization.ko.lua    [AllowLoadTextLocale koKR]
 MobInfo2.xml
 MI2_Config.xml

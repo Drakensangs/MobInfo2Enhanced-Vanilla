@@ -315,6 +315,9 @@ MI2_OPTIONS["MI2_OptSaveBasicInfo"] =
 { text = "Record basic Mob info"; help = "Record a set of basic Mob information.";
 info = "Basic Mob info includes: Mob type, counters for:\nloot, empty loot, cloth, money, items value, items quality overview."; }
 
+MI2_OPTIONS["MI2_OptSaveCritters"] = 
+{ text = "Record critter info"; help = "Record Mob data for critters." }
+
 MI2_OPTIONS["MI2_OptSaveCharData"] = 
 { text = "Record character specific Mob data"; help = "Record all Mob data that is character specific.";
 info = "This will enable or disable saving of the following data:\nnumber of kills, min/max damage, DPS and Mob XP.\n\nThis data is saved separately for each character. Saving it can\nonly be enabled/disabled for the entire set of 4 values"; }

@@ -1,5 +1,4 @@
 if not C_Item then return end
-if GetLocale() ~= "koKR" then return end
 
 -- Korean (koKR)
 
@@ -300,6 +299,9 @@ info = "기록할 아이템의 품질 수준을 선택할 수 있습니다."; }
 MI2_OPTIONS["MI2_OptSaveBasicInfo"] =
 { text = "기본 몬스터 정보 기록"; help = "기본 몬스터 정보 세트 기록.";
 info = "기본 몬스터 정보에는 몬스터 유형, 카운터가 포함됩니다:\n전리품, 빈 전리품, 천, 돈, 아이템 가치, 아이템 품질 개요." }
+
+MI2_OPTIONS["MI2_OptSaveCritters"] =
+{ text = "동물 정보 기록"; help = "동물의 몬스터 데이터 기록." }
 
 MI2_OPTIONS["MI2_OptSaveCharData"] =
 { text = "캐릭터별 몬스터 데이터 기록"; help = "모든 캐릭터별 몬스터 데이터 기록.";

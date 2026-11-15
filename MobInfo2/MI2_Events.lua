@@ -101,6 +101,8 @@ local function MI2_VariablesLoaded()
 		if arg1 ~= "LALT" and arg1 ~= "RALT" then return end
 		if MobInfoConfig.DisableMobInfo == 1 or MobInfoConfig.KeypressMode == 0 then return end
 		if not GameTooltip:IsVisible() then return end
+		-- never replace an item tooltip
+		if GameTooltip:GetItem() then return end
 
 		-- Only act when a hostile/neutral creature is currently moused over
 		if not (UnitCreatureType("mouseover") and UnitIsFriend("player","mouseover") == nil) then
@@ -632,6 +634,7 @@ function MI2_GameTooltip_OnShow( )
 	MI2_HealthLine, MI2_ManaLine = nil, nil
 	MI2_CurrentItemTooltip = nil
 	MI2_CurrentItemID = nil
+	MI2_ItemTooltipDone = nil
 
 	-- check if mobinfo tooltip extensions are enabled and check for keypress mode
 	if MobInfoConfig.DisableMobInfo == 0 and (MobInfoConfig.KeypressMode == 0
@@ -658,7 +661,9 @@ function MI2_GameTooltip_OnShow( )
 			-- so random-suffix items (e.g. "of the Tiger") match the XRef table
 			local _, _, tooltipItemID = GameTooltip:GetItem()
 			local lookupName
-			if tooltipItemID then
+			if tooltipItemID and C_Item.IsItemDataCachedByID(tooltipItemID) then
+				-- the item may still be waiting in the preload queue
+				MI2_AddPendingItem( tooltipItemID )
 				lookupName = C_Item.GetItemNameByID(tooltipItemID)
 			end
 			if not lookupName then
@@ -667,6 +672,7 @@ function MI2_GameTooltip_OnShow( )
 			MI2_CurrentItemTooltip = lookupName
 			MI2_CurrentItemID = tooltipItemID
 			if MI2_BuildItemDataTooltip( lookupName ) then
+				MI2_ItemTooltipDone = true
 				GameTooltip:Show()
 			end
 		end
@@ -714,7 +720,9 @@ end
 -----------------------------------------------------------------------------
 function MI2_EventCreatureDataLoaded()
 	if not arg2 then
-		-- load failed: still advance the preload queue
+		-- load failed: allow a new request on the next hover
+		if arg1 then MI2_CreatureRequested[arg1] = nil end
+		-- still advance the preload queue
 		if MI2_CreaturePreloadPending and MI2_CreaturePreloadPending > 0 then
 			MI2_CreaturePreloadPending = MI2_CreaturePreloadPending - 1
 		end
@@ -791,39 +799,42 @@ function MI2_EventCreatureDataLoaded()
 		MI2_OnTargetChanged()
 	end
 
-	-- if an item tooltip is showing, rebuild it so #ID names update to real names
-	if MI2_CurrentItemTooltip and MI2_CurrentItemID and GameTooltip:IsVisible() then
-		GameTooltip:SetItemByID(MI2_CurrentItemID)
-	end
+	-- show the real name in an open item tooltip
+	MI2_UpdateItemTooltipMobName( creatureID )
 end
 
 -----------------------------------------------------------------------------
 -- MI2_EventItemInfoReceived()
 --
--- Called when GET_ITEM_INFO_RECEIVED fires (arg1=itemID).
--- Rebuilds the XRef item table to include items that were not cached
--- when the table was first built (e.g. after a WDB clear).
--- Also refreshes any currently open item tooltip.
+-- Called when GET_ITEM_INFO_RECEIVED or ITEM_DATA_LOAD_RESULT fires
+-- (arg1=itemID). Adds items that were not cached when the XRef table was
+-- built and advances the item preload.
 -----------------------------------------------------------------------------
 function MI2_EventItemInfoReceived()
 	local itemID = arg1
-	if not itemID or not MI2_PendingItemIDs then return end
+	if not itemID then return end
 
-	local pending = MI2_PendingItemIDs[itemID]
-	if not pending then return end
+	MI2_ItemLoadDone( itemID )
 
-	local itemText = C_Item.GetItemNameByID(itemID)
-	if not itemText then return end
-
-	-- add to XRef table using the pre-built pending lookup
-	for mobIndex, amount in pairs(pending) do
-		MI2_AddItemToXRefTable( mobIndex, itemText, amount )
+	local preloaded = MI2_ItemPreloadWaiting[itemID]
+	if preloaded then
+		MI2_ItemPreloadWaiting[itemID] = nil
+		MI2_ItemPreloadPending = MI2_ItemPreloadPending - 1
 	end
-	MI2_PendingItemIDs[itemID] = nil
 
-	-- if an item tooltip is open and it is for this item, rebuild it
-	if MI2_CurrentItemID and MI2_CurrentItemID == itemID and GameTooltip:IsVisible() then
-		GameTooltip:SetItemByID( MI2_CurrentItemID )
+	local itemText = MI2_AddPendingItem( itemID )
+
+	-- open tooltip for this item without our lines: add them in place
+	if itemText and itemID == MI2_CurrentItemID and not MI2_ItemTooltipDone and GameTooltip:IsVisible() then
+		local _, _, tooltipItemID = GameTooltip:GetItem()
+		if tooltipItemID == itemID and MI2_BuildItemDataTooltip( itemText ) then
+			MI2_ItemTooltipDone = true
+			GameTooltip:Show()
+		end
+	end
+
+	if preloaded then
+		MI2_ItemPreload_Next()
 	end
 end
 
@@ -865,7 +876,8 @@ function MI2_OnLoad()
 		CHAT_MSG_SPELL_PET_DAMAGE = {f=MI2_EventPetSpell, char=1},
 		CHAT_MSG_MONSTER_EMOTE = {f=MI2_EventMonsterEmote, basic=1},
 		CREATURE_DATA_LOAD_RESULT = {f=MI2_EventCreatureDataLoaded, always=1},
-		GET_ITEM_INFO_RECEIVED = {f=MI2_EventItemInfoReceived, always=1}, }
+		GET_ITEM_INFO_RECEIVED = {f=MI2_EventItemInfoReceived, always=1},
+		ITEM_DATA_LOAD_RESULT = {f=MI2_EventItemInfoReceived, always=1}, }
 
 	-- event table modification required for chinese localisation
 	if ( GetLocale() == "zhTW" ) then
@@ -908,6 +920,7 @@ function MI2_OnLoad()
 	this:RegisterEvent("VARIABLES_LOADED")
 	this:RegisterEvent("CREATURE_DATA_LOAD_RESULT")
 	this:RegisterEvent("GET_ITEM_INFO_RECEIVED")
+	this:RegisterEvent("ITEM_DATA_LOAD_RESULT")
 
 	-- prepare for importing external database data
 	-- this must be done before "VARIABLES_LOADED" overwrites import data

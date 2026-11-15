@@ -60,6 +60,7 @@ setmetatable(MI2_MobHpDB, {
 	end,
 	__newindex = function(t, key, value)
 		if not MobInfoDB then return end
+		if value ~= nil and MI2_SkipCritter( key ) then return end
 		local mobInfo = MobInfoDB[key]
 		if not mobInfo then
 			mobInfo = {}
@@ -465,12 +466,45 @@ function MI2_DecodeItemList( mobInfo, mobData, mobIndex )
 end
 
 -----------------------------------------------------------------------------
+-- MI2_IsCritter()
+--
+-- True if the mob is a critter (creature type 8).
+-----------------------------------------------------------------------------
+local MI2_CRITTER_TYPE = 8
+
+function MI2_IsCritter( mobIndex )
+	if not mobIndex then return false end
+	local mobName = MI2_GetIndexComponents( mobIndex )
+	local creatureID = tonumber( mobName )
+	local info = creatureID and C_CreatureInfo.GetCreatureInfoByID( creatureID )
+	if info then
+		return info.type == MI2_CRITTER_TYPE
+	end
+	-- not cached: compare the target's creature type name
+	if MI2_Target and mobIndex == MI2_Target.mobIndex then
+		local critter = C_CreatureInfo.GetCreatureTypeInfo( MI2_CRITTER_TYPE )
+		return critter ~= nil and UnitCreatureType("target") == critter.name
+	end
+	return false
+end
+
+-----------------------------------------------------------------------------
+-- MI2_SkipCritter()
+--
+-- True if the mob is a critter and critters are not being recorded.
+-----------------------------------------------------------------------------
+function MI2_SkipCritter( mobIndex )
+	return (not MobInfoConfig or MobInfoConfig.SaveCritters ~= 1) and MI2_IsCritter( mobIndex )
+end
+
+-----------------------------------------------------------------------------
 -- MI2_StoreBasicInfo()
 --
 -- Store the mob basic info in the mob database. Basic info includes the
 -- mob loot quality overview counters.
 -----------------------------------------------------------------------------
 function MI2_StoreBasicInfo( mobIndex, mobData )
+	if MI2_SkipCritter( mobIndex ) then return end
 	local mobInfo = MobInfoDB[mobIndex]
 	if not mobInfo then
 		mobInfo = {}
@@ -494,6 +528,7 @@ end
 -- Store the mob location data in the mob database.
 -----------------------------------------------------------------------------
 function MI2_StoreLocation( mobIndex, loc )
+	if MI2_SkipCritter( mobIndex ) then return end
 	local mobInfo = MobInfoDB[mobIndex]
 	if not mobInfo then
 		mobInfo = {}
@@ -517,6 +552,7 @@ end
 -- Store the char specific mob data in the mob database.
 -----------------------------------------------------------------------------
 local function MI2_StoreCharData( mobIndex, mobData, playerName )
+	if MI2_SkipCritter( mobIndex ) then return end
 	local mobInfo = MobInfoDB[mobIndex]
 	if not mobInfo then
 		mobInfo = {}
@@ -535,6 +571,7 @@ end
 -- Store a mobs loot items list in mob database.
 -----------------------------------------------------------------------------
 function MI2_StoreLootItems( mobIndex, mobData )
+	if MI2_SkipCritter( mobIndex ) then return end
 	local mobInfo = MobInfoDB[mobIndex]
 	if not mobInfo then
 		mobInfo = {}
@@ -568,6 +605,7 @@ end
 -- resistances exist.
 -----------------------------------------------------------------------------
 function MI2_StoreResistData( mobIndex )
+	if MI2_SkipCritter( mobIndex ) then return end
 	local mobData = MI2_FetchMobData( mobIndex )
 	resData = mobData.resists
 
@@ -760,6 +798,7 @@ end
 	if  not MobInfoConfig.SaveCharData	then  MobInfoConfig.SaveCharData = 1	end
 	if  not MobInfoConfig.ItemsQuality	then  MobInfoConfig.ItemsQuality = 2	end
 	if  not MobInfoConfig.SaveBasicInfo	then  MobInfoConfig.SaveBasicInfo = 1	end
+	if  not MobInfoConfig.SaveCritters	then  MobInfoConfig.SaveCritters = 0	end
 	if  not MobInfoConfig.ItemTooltip	then  MobInfoConfig.ItemTooltip = 1		end
 	if  not MobInfoConfig.ItemFilter	then  MobInfoConfig.ItemFilter = ""		end
 	if  not MobInfoConfig.ShowLocation	then  MobInfoConfig.ShowLocation = 1	end
@@ -1367,7 +1406,8 @@ function MI2_BuildXRefItemTable()
 		MI2_DecodeItemList( mobInfo, mobData )
 		if mobData.itemList then
 			for itemID, amount in pairs(mobData.itemList) do
-				local itemText = C_Item.GetItemNameByID(itemID)
+				-- passive check: warming here floods GET_ITEM_INFO_RECEIVED
+				local itemText = C_Item.IsItemDataCachedByID(itemID) and C_Item.GetItemNameByID(itemID)
 				if itemText then
 					MI2_AddItemToXRefTable( mobIndex, itemText, amount )
 				else
@@ -1385,52 +1425,77 @@ end
 -----------------------------------------------------------------------------
 -- MI2_PreloadItems()
 --
--- Warms the client item cache for every uncached item ID in MobInfoDB by
--- calling SetHyperlink on a hidden GameTooltip frame, one item per OnUpdate
--- frame - exactly the technique aux uses in populate_wdb. No interval timer:
--- one call per frame gives maximum throughput without stalling the client.
--- GET_ITEM_INFO_RECEIVED fires for each item and MI2_EventItemInfoReceived
--- populates the XRef table.
+-- Warms the item cache for every uncached item ID in MobInfoDB with
+-- explicit loads (ITEM_DATA_LOAD_RESULT), a few at a time. Explicit loads
+-- don't fire GET_ITEM_INFO_RECEIVED, which other addons treat as a reason
+-- to rebuild their tooltips.
 -----------------------------------------------------------------------------
+MI2_ItemPreloadQueue   = nil
+MI2_ItemPreloadWaiting = {}
+MI2_ItemPreloadPending = 0
+local MI2_ITEM_WINDOW  = 32
+
 function MI2_PreloadItems()
 	if not MI2_PendingItemIDs then return end
 
 	local queue = {}
 	for itemID in pairs(MI2_PendingItemIDs) do
-		if not C_Item.IsItemDataCachedByID(itemID) then
+		-- skip items already loading
+		if not MI2_ItemPreloadWaiting[itemID] then
 			queue[table.getn(queue) + 1] = itemID
 		end
 	end
-
 	if table.getn(queue) == 0 then return end
 
-	local idx = 1
-	MI2_ItemCacheTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+	MI2_ItemPreloadQueue = queue
+	MI2_ItemPreload_Next()
+end
 
-	local preloadFrame = CreateFrame("Frame")
-	preloadFrame:SetScript("OnUpdate", function()
-		if idx > table.getn(queue) then
-			preloadFrame:SetScript("OnUpdate", nil)
-			-- queue drained: sweep PendingItemIDs and populate XRef for
-			-- everything now cached, regardless of whether GET_ITEM_INFO_RECEIVED
-			-- fired (SetHyperlink may not fire that event for all items)
-			for itemID, pending in pairs(MI2_PendingItemIDs) do
-				local itemText = C_Item.GetItemNameByID(itemID)
-				if itemText then
-					for mobIndex, amount in pairs(pending) do
-						MI2_AddItemToXRefTable(mobIndex, itemText, amount)
-					end
-					MI2_PendingItemIDs[itemID] = nil
-				end
+function MI2_ItemPreload_Next()
+	local queue = MI2_ItemPreloadQueue
+	if not queue then return end
+
+	while MI2_ItemPreloadPending < MI2_ITEM_WINDOW and table.getn(queue) > 0 do
+		local itemID = queue[table.getn(queue)]
+		if C_Item.IsItemDataCachedByID(itemID) then
+			queue[table.getn(queue)] = nil
+			MI2_AddPendingItem( itemID )
+		elseif C_Item.RequestLoadItemDataByID(itemID) then
+			queue[table.getn(queue)] = nil
+			MI2_ItemPreloadWaiting[itemID] = true
+			MI2_ItemPreloadPending = MI2_ItemPreloadPending + 1
+		else
+			-- ClassicAPI's request queue is full: try again shortly
+			if MI2_ItemPreloadPending == 0 then
+				C_Timer.After( 1, MI2_ItemPreload_Next )
 			end
 			return
 		end
-		-- one item per frame: same as aux populate_wdb
-		if not C_Item.IsItemDataCachedByID(queue[idx]) then
-			MI2_ItemCacheTooltip:SetHyperlink("item:" .. queue[idx])
-		end
-		idx = idx + 1
-	end)
+	end
+
+	if table.getn(queue) == 0 then
+		MI2_ItemPreloadQueue = nil
+	end
+end
+
+-----------------------------------------------------------------------------
+-- MI2_AddPendingItem()
+--
+-- Move a now cached item from the pending list into the XRef table.
+-- Returns the item name when the item was added.
+-----------------------------------------------------------------------------
+function MI2_AddPendingItem( itemID )
+	local pending = MI2_PendingItemIDs and MI2_PendingItemIDs[itemID]
+	if not pending or not C_Item.IsItemDataCachedByID( itemID ) then return end
+
+	local itemText = C_Item.GetItemNameByID( itemID )
+	if not itemText then return end
+
+	for mobIndex, amount in pairs(pending) do
+		MI2_AddItemToXRefTable( mobIndex, itemText, amount )
+	end
+	MI2_PendingItemIDs[itemID] = nil
+	return itemText
 end
 
 -----------------------------------------------------------------------------
@@ -1763,6 +1828,32 @@ function lootName2Copper(item)
 end
 
 -----------------------------------------------------------------------------
+-- MI2_IsItemCached()
+--
+-- True if the item is cached. An uncached item gets an explicit load:
+-- implicit loads fire GET_ITEM_INFO_RECEIVED, which makes other addons
+-- (e.g. equip compare) rebuild their tooltips.
+-----------------------------------------------------------------------------
+local MI2_ItemRequested = {}
+
+function MI2_IsItemCached( itemID )
+	if C_Item.IsItemDataCachedByID( itemID ) then return true end
+	-- one request at a time per item
+	if not MI2_ItemRequested[itemID] then
+		MI2_ItemRequested[itemID] = true
+		if not C_Item.RequestLoadItemDataByID( itemID ) then
+			MI2_ItemRequested[itemID] = nil
+		end
+	end
+	return false
+end
+
+-- Load finished: a failed item is requested again on its next lookup
+function MI2_ItemLoadDone( itemID )
+	MI2_ItemRequested[itemID] = nil
+end
+
+-----------------------------------------------------------------------------
 -- MI2_FindItemValue()
 --
 -- Find the item value in either the Auctioneer database or in out own copy
@@ -1770,6 +1861,7 @@ end
 -----------------------------------------------------------------------------
 function MI2_FindItemValue( itemID )
 	-- use ClassicAPI to get vendor sell price directly from item cache
+	if not MI2_IsItemCached( itemID ) then return 0 end
 	local _,_,_,_,_,_,_,_,_,_, sellPrice = C_Item.GetItemInfo( itemID )
 	return sellPrice or 0
 end
@@ -1789,7 +1881,10 @@ function MI2_ComputeItemValue( mobData, mobIndex )
 	if not mobData.itemList then return nil end
 	local total = 0
 	for itemID, amount in pairs(mobData.itemList) do
-		local _,_,_,_,_,_,_,_,_,_, sellPrice = C_Item.GetItemInfo( itemID )
+		local _,_,_,_,_,_,_,_,_,_, sellPrice
+		if MI2_IsItemCached( itemID ) then
+			_,_,_,_,_,_,_,_,_,_, sellPrice = C_Item.GetItemInfo( itemID )
+		end
 		if sellPrice and sellPrice > 0 then
 			total = total + sellPrice * amount
 		end
@@ -2014,8 +2109,12 @@ end
 -----------------------------------------------------------------------------
 function MI2_GetLootItemString( itemID )
 	-- Use ClassicAPI to get item name and quality by ID
-	local itemString = C_Item.GetItemNameByID(itemID) or tostring(itemID)
-	local quality = C_Item.GetItemQualityByID(itemID)
+	local itemString, quality
+	if MI2_IsItemCached( itemID ) then
+		itemString = C_Item.GetItemNameByID(itemID)
+		quality = C_Item.GetItemQualityByID(itemID)
+	end
+	itemString = itemString or tostring(itemID)
 	-- C_Item.GetItemQualityByID returns 0-based (0=Poor,1=Common,...), add 1 for MI2_QualityColor index
 	local color
 	if quality then
@@ -2612,7 +2711,7 @@ local function MI2_BuildQualityString( mobData, mobIndex )
 	local counts = {}
 	if mobData.itemList then
 		for itemID, amount in pairs(mobData.itemList) do
-			local q = C_Item.GetItemQualityByID(itemID)
+			local q = MI2_IsItemCached(itemID) and C_Item.GetItemQualityByID(itemID)
 			if q then
 				local idx = q + 1  -- 0-based WoW quality -> 1-based r1..r6
 				counts[idx] = (counts[idx] or 0) + amount
@@ -2805,17 +2904,24 @@ function MI2_BuildItemDataTooltip( itemName )
 	end
 	if numMobs > 8 then numMobs = 8 end
 	local uncachedIDs = {}
+	MI2_ItemTooltipNameLines = {}
 	for idx = 1, numMobs do
 		local data = sortList[idx]
 		local creatureID = tonumber(data.name)
 		local displayName = MI2_GetMobName( creatureID ) or ("#"..data.name)
-		if creatureID and not C_CreatureInfo.GetCreatureInfoByID(creatureID) then
+		local uncached = creatureID and not C_CreatureInfo.GetCreatureInfoByID(creatureID)
+		-- request each uncached creature only once per session
+		if uncached and not MI2_CreatureRequested[creatureID] then
+			MI2_CreatureRequested[creatureID] = true
 			uncachedIDs[table.getn(uncachedIDs) + 1] = creatureID
 		end
 		if data.loots > 0 then
 			GameTooltip:AddDoubleLine( mifontLightBlue.."  "..displayName, mifontWhite..data.chance.."% ("..data.count.."/"..data.loots..")" )
 		else
 			GameTooltip:AddDoubleLine( mifontLightBlue.."  "..displayName, mifontWhite..data.chance )
+		end
+		if uncached then
+			MI2_ItemTooltipNameLines[creatureID] = GameTooltip:NumLines()
 		end
 	end
 
@@ -2825,12 +2931,41 @@ function MI2_BuildItemDataTooltip( itemName )
 	if table.getn(uncachedIDs) > 0 then
 		C_Timer.After(0, function()
 			for _, creatureID in ipairs(uncachedIDs) do
-				C_CreatureInfo.RequestLoadCreatureByID(creatureID)
+				-- not accepted: ask again on the next hover
+				if not C_CreatureInfo.RequestLoadCreatureByID(creatureID) then
+					MI2_CreatureRequested[creatureID] = nil
+				end
 			end
 		end)
 	end
 
 	return true
+end
+
+-----------------------------------------------------------------------------
+-- MI2_UpdateItemTooltipMobName()
+--
+-- Replace a "#ID" placeholder in the open item tooltip with the creature
+-- name once it is loaded. Edits the line in place: rebuilding the tooltip
+-- would make other addons (e.g. equip compare) rebuild theirs too.
+-----------------------------------------------------------------------------
+MI2_ItemTooltipNameLines = {}
+MI2_CreatureRequested = {}
+
+function MI2_UpdateItemTooltipMobName( creatureID )
+	local line = MI2_ItemTooltipNameLines[creatureID]
+	if not line then return end
+	MI2_ItemTooltipNameLines[creatureID] = nil
+
+	local _, _, itemID = GameTooltip:GetItem()
+	if not GameTooltip:IsVisible() or not itemID or itemID ~= MI2_CurrentItemID then return end
+
+	local name = MI2_GetMobName( creatureID )
+	local textLine = getglobal( "GameTooltipTextLeft"..line )
+	if name and textLine and textLine:GetText() == mifontLightBlue.."  #"..creatureID then
+		textLine:SetText( mifontLightBlue.."  "..name )
+		GameTooltip:Show()
+	end
 end
 
 -----------------------------------------------------------------------------

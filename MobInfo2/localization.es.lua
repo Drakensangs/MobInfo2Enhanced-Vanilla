@@ -1,5 +1,4 @@
 if not C_Item then return end
-if GetLocale() ~= "esES" then return end
 
 -- Spanish (esES)
 
@@ -300,6 +299,9 @@ info = "Puedes elegir el nivel de calidad de los objetos a registrar."; }
 MI2_OPTIONS["MI2_OptSaveBasicInfo"] =
 { text = "Registrar información básica de criatura"; help = "Registrar un conjunto de información básica de criatura.";
 info = "La información básica incluye: tipo de criatura, contadores para:\nbotín, botín vacío, tela, dinero, valor de objetos, resumen de calidad." }
+
+MI2_OPTIONS["MI2_OptSaveCritters"] =
+{ text = "Registrar alimañas"; help = "Registrar datos de criatura para las alimañas." }
 
 MI2_OPTIONS["MI2_OptSaveCharData"] =
 { text = "Registrar datos específicos del personaje"; help = "Registrar todos los datos de criatura específicos del personaje.";

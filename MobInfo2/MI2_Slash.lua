@@ -280,41 +280,45 @@ function MI2_Slash_TrimDownConfirmed()
 	-- loop through database and check each record
 	-- remove all fields within the record where recording of the field is disabled
 	for idx, mobInfo in pairs(MobInfoDB) do
-		if  MobInfoConfig.SaveBasicInfo == 0 then
-			mobInfo.bi = nil
-		end
-		if  MobInfoConfig.SaveLocation == 0 then
-			mobInfo.ml = nil
-		end
-		if  MobInfoConfig.SaveItems == 0 then
-			mobInfo.il = nil
-		elseif mobInfo.il then
-			-- Remove items below the current quality recording threshold.
-			-- ItemsQuality: 1=Grey+, 2=White+, 3=Green+  (maps to min quality 0, 1, 2)
-			local minQuality = (MobInfoConfig.ItemsQuality or 1) - 1
-			if minQuality > 0 then
-				local mobData = {}
-				MI2_DecodeItemList( mobInfo, mobData )
-				if mobData.itemList then
-					local changed = false
-					for itemID in pairs(mobData.itemList) do
-						local q = C_Item.GetItemQualityByID(itemID)
-						if q and q < minQuality then
-							mobData.itemList[itemID] = nil
-							changed = true
+		if  MI2_SkipCritter( idx ) then
+			MobInfoDB[idx] = nil
+		else
+			if  MobInfoConfig.SaveBasicInfo == 0 then
+				mobInfo.bi = nil
+			end
+			if  MobInfoConfig.SaveLocation == 0 then
+				mobInfo.ml = nil
+			end
+			if  MobInfoConfig.SaveItems == 0 then
+				mobInfo.il = nil
+			elseif mobInfo.il then
+				-- Remove items below the current quality recording threshold.
+				-- ItemsQuality: 1=Grey+, 2=White+, 3=Green+  (maps to min quality 0, 1, 2)
+				local minQuality = (MobInfoConfig.ItemsQuality or 1) - 1
+				if minQuality > 0 then
+					local mobData = {}
+					MI2_DecodeItemList( mobInfo, mobData )
+					if mobData.itemList then
+						local changed = false
+						for itemID in pairs(mobData.itemList) do
+							local q = MI2_IsItemCached(itemID) and C_Item.GetItemQualityByID(itemID)
+							if q and q < minQuality then
+								mobData.itemList[itemID] = nil
+								changed = true
+							end
 						end
-					end
-					if changed then
-						MI2_StoreLootItems( idx, mobData )
+						if changed then
+							MI2_StoreLootItems( idx, mobData )
+						end
 					end
 				end
 			end
-		end
-		if  MobInfoConfig.SaveResist == 0 then
-			mobInfo.re = nil
-		end
-		if  MobInfoConfig.SaveCharData == 0 then
-			MI2_RemoveCharData( mobInfo )
+			if  MobInfoConfig.SaveResist == 0 then
+				mobInfo.re = nil
+			end
+			if  MobInfoConfig.SaveCharData == 0 then
+				MI2_RemoveCharData( mobInfo )
+			end
 		end
 	end
 
@@ -326,6 +330,8 @@ function MI2_Slash_TrimDownConfirmed()
 	-- force a cleanup after trimming down
 	MI2_ClearMobCache()
 	MI2_CleanupDatabases()
+	MI2_BuildXRefItemTable()
+	MI2_PreloadItems()
 
 	MI2_DbOptionsFrameOnShow()
 end
@@ -414,6 +420,8 @@ function MI2_SlashAction_ImportMobData()
 	-- update item cross reference table after import
 	if MobInfoConfig.ImportOnlyNew == 0 then
 		MI2_BuildXRefItemTable()
+		-- load drop items that aren't cached yet
+		MI2_PreloadItems()
 	end
 
 	chattext( " imported "..newMobs.." new Mobs" )

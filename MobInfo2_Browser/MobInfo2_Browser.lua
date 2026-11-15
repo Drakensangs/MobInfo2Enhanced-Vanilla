@@ -272,7 +272,7 @@ function MI2B_RefreshBrowseList()
 				entry.r1, entry.r2, entry.r3, entry.r4, entry.r5, entry.r6 = 0, 0, 0, 0, 0, 0
 				if entry.itemList then
 					for itemID, amount in pairs(entry.itemList) do
-						local q = C_Item.GetItemQualityByID(itemID)
+						local q = MI2_IsItemCached(itemID) and C_Item.GetItemQualityByID(itemID)
 						if q then
 							local idx = q + 1
 							entry["r"..idx] = (entry["r"..idx] or 0) + amount
@@ -321,7 +321,7 @@ function MI2B_RefreshBrowseList()
 				combined.r1, combined.r2, combined.r3, combined.r4, combined.r5, combined.r6 = 0, 0, 0, 0, 0, 0
 				if combined.itemList then
 					for itemID, amount in pairs(combined.itemList) do
-						local q = C_Item.GetItemQualityByID(itemID)
+						local q = MI2_IsItemCached(itemID) and C_Item.GetItemQualityByID(itemID)
 						if q then
 							local ridx = q + 1
 							combined["r"..ridx] = (combined["r"..ridx] or 0) + amount

@@ -1,5 +1,4 @@
 if not C_Item then return end
-if GetLocale() ~= "deDE" then return end
 
 -- German (deDE)
 
@@ -300,6 +299,9 @@ info = "Du kannst die Qualitätsstufe der aufzuzeichnenden Gegenstände wählen.
 MI2_OPTIONS["MI2_OptSaveBasicInfo"] =
 { text = "Grundlegende Gegnerinfos aufzeichnen"; help = "Einen Satz grundlegender Gegnerinformationen aufzeichnen.";
 info = "Grundlegende Gegnerinfos umfassen: Gegnertyp, Zähler für:\nBeute, leere Beute, Stoff, Geld, Gegenstandswert, Gegenstands-Qualitätsübersicht."; }
+
+MI2_OPTIONS["MI2_OptSaveCritters"] =
+{ text = "Kleintiere aufzeichnen"; help = "Gegnerdaten für Kleintiere aufzeichnen." }
 
 MI2_OPTIONS["MI2_OptSaveCharData"] =
 { text = "Charakterspezifische Gegnerdaten aufzeichnen"; help = "Alle charakterspezifischen Gegnerdaten aufzeichnen.";

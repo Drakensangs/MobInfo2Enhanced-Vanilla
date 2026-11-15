@@ -1,5 +1,4 @@
 if not C_Item then return end
-if GetLocale() ~= "frFR" then return end
 
 -- French (frFR)
 
@@ -300,6 +299,9 @@ info = "Vous pouvez choisir le niveau de qualité des objets à enregistrer."; }
 MI2_OPTIONS["MI2_OptSaveBasicInfo"] =
 { text = "Enregistrer les infos de base"; help = "Enregistrer un ensemble d'informations de base sur les créatures.";
 info = "Les infos de base incluent : type de créature, compteurs pour :\nbutin, butin vide, tissu, argent, valeur des objets, aperçu qualité." }
+
+MI2_OPTIONS["MI2_OptSaveCritters"] =
+{ text = "Enregistrer les bestioles"; help = "Enregistrer les données des bestioles." }
 
 MI2_OPTIONS["MI2_OptSaveCharData"] =
 { text = "Enregistrer les données spécifiques au personnage"; help = "Enregistrer toutes les données de créature spécifiques au personnage.";

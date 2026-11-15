@@ -960,6 +960,13 @@
 									</Anchor>
 								</Anchors>
 							</CheckButton>
+							<CheckButton name="MI2_OptSaveCritters" inherits="MI2_CheckboxTemplate">
+								<Anchors>
+									<Anchor	point="LEFT" relativeTo="MI2_OptSaveBasicInfoText" relativePoint="RIGHT">
+										<Offset> <AbsDimension x="20" y="0" /> </Offset>
+									</Anchor>
+								</Anchors>
+							</CheckButton>
 							<CheckButton name="MI2_OptSaveCharData" inherits="MI2_CheckboxTemplate">
 								<Anchors>
 									<Anchor	point="TOPLEFT"	relativeTo="MI2_OptSaveBasicInfo">

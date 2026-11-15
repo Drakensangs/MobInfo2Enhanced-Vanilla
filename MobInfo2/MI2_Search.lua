@@ -426,7 +426,7 @@ function MI2_DisplaySearchResult( resultType )
 			local displayMobName
 			if entry.col then
 				-- item list result: resolve name fresh in case cache has filled
-				local resolvedName = (entry.itemID and C_Item.GetItemNameByID(entry.itemID)) or entry.idx
+				local resolvedName = (entry.itemID and MI2_IsItemCached(entry.itemID) and C_Item.GetItemNameByID(entry.itemID)) or entry.idx
 				displayMobName = entry.col..resolvedName
 			else
 				-- mob list result: idx is a mobIndex ("creatureID:level") or a level range entry

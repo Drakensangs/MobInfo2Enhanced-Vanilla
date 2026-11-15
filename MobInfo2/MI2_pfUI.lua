@@ -99,7 +99,7 @@ local function MI2_ApplypfUISkin()
 			MI2_OptItemTooltip,
 			MI2_OptTargetHealth, MI2_OptHealthPercent,
 			MI2_OptTargetMana, MI2_OptManaPercent, MI2_OptAbbrevHP,
-			MI2_OptSaveBasicInfo, MI2_OptSaveCharData, MI2_OptSaveLocation,
+			MI2_OptSaveBasicInfo, MI2_OptSaveCritters, MI2_OptSaveCharData, MI2_OptSaveLocation,
 			MI2_OptSaveResist, MI2_OptSaveItems, MI2_OptSaveMobHp,
 			MI2_OptRecordPlayerHp, MI2_OptSavePlayerHp, MI2_OptImportOnlyNew,
 			MI2_OptSearchNormal, MI2_OptSearchRare,

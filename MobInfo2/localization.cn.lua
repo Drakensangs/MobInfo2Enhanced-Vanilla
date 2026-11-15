@@ -1,5 +1,4 @@
 if not C_Item then return end
-if GetLocale() ~= "zhCN" then return end
 
 -- Simplified Chinese (zhCN)
 
@@ -300,6 +299,9 @@ info = "你可以选择要记录的物品品质等级。"; }
 MI2_OPTIONS["MI2_OptSaveBasicInfo"] =
 { text = "记录基本怪物信息"; help = "记录一组基本怪物信息。";
 info = "基本怪物信息包括：怪物类型，计数器：\n战利品、空战利品、布料、金币、物品价值、物品品质概览。"; }
+
+MI2_OPTIONS["MI2_OptSaveCritters"] =
+{ text = "记录小动物信息"; help = "记录小动物的怪物数据。" }
 
 MI2_OPTIONS["MI2_OptSaveCharData"] =
 { text = "记录角色特定怪物数据"; help = "记录所有角色特定的怪物数据。";
